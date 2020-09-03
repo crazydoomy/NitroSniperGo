@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/fatih/color"
-	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -16,10 +13,15 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/fatih/color"
+	"github.com/valyala/fasthttp"
 )
 
 var (
-	Token             string
+	TokenA            string
+	TokenB            string
 	userID            string
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	_                 = regexp.MustCompile("https://privnote.com/.*")
@@ -50,9 +52,12 @@ func init() {
 
 	m := f.(map[string]interface{})
 
-	str := fmt.Sprintf("%v", m["token"])
+	str1 := fmt.Sprintf("%v", m["token1"])
+	flag.StringVar(&TokenA, "t1", str1, "Token")
+	flag.Parse()
 
-	flag.StringVar(&Token, "t", str, "Token")
+	str2 := fmt.Sprintf("%v", m["token2"])
+	flag.StringVar(&TokenB, "t2", str2, "Token")
 	flag.Parse()
 }
 
@@ -73,7 +78,7 @@ func main() {
 ░     ░        ░  ░ ░          ░ ░     ░        ░             ░           ░  ░              ░  ░   ░
 ░                   ░                           ░
 	`)
-	dg, err := discordgo.New(Token)
+	dg, err := discordgo.New(TokenA)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -136,7 +141,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var strRequestURI = []byte("https://discordapp.com/api/v6/entitlements/gift-codes/" + code[2] + "/redeem")
 		req := fasthttp.AcquireRequest()
 		req.Header.SetContentType("application/json")
-		req.Header.Set("authorization", Token)
+		req.Header.Set("authorization", TokenB)
 		req.SetBody([]byte(`{"channel_id":` + m.ChannelID + "}"))
 		req.Header.SetMethodBytes(strPost)
 		req.SetRequestURIBytes(strRequestURI)
